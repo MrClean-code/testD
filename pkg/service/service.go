@@ -6,7 +6,8 @@ import (
 )
 
 type DealList interface {
-	GetDealsByName() ([]model.Deal, error)
+	GetDealsByName(string) ([]model.Deal, error)
+	GetAllDeals() ([]model.Deal, error)
 	InsertDeals([]model.Deal, error) string
 }
 

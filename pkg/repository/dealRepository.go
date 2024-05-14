@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/MrClean-code/testD/pkg/model"
 	"github.com/jackc/pgx/v4"
+	"strconv"
 )
 
 type DealPostgres struct {
@@ -17,9 +18,45 @@ func NewDealPostgres(db *pgx.Conn) *DealPostgres {
 	}
 }
 
-func (d *DealPostgres) GetDealsByName() ([]model.Deal, error) {
-	//sql
-	return nil, nil
+func (d *DealPostgres) GetDealsByName(name string) ([]model.Deal, error) {
+	var deals []model.Deal
+	query := `
+		SELECT deals.name, deals.owner, deals.price,
+			   deals.count_reviews, deals.score, deals.link
+		FROM deals
+		WHERE LENGTH(SUBSTRING(deals.name FROM $1)) >= 4
+	`
+
+	rows, err := d.db.Query(context.Background(), query, name)
+	if err != nil {
+		fmt.Println("Ошибка выполнения запроса:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var deal model.Deal
+		err := rows.Scan(
+			&deal.ID,
+			&deal.Name,
+			&deal.Owner,
+			&deal.Price,
+			&deal.CountReviews,
+			&deal.Score,
+			&deal.Link,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		deals = append(deals, deal)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return deals, nil
 }
 
 func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
@@ -30,14 +67,14 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 	}
 	defer tx.Rollback(ctx)
 
+	var ord int
 	for _, deal := range sl {
-		var ord int
+
 		createDealQuery := fmt.Sprintf(`
 		INSERT INTO %s (name, owner, price,
 		                count_reviews, score, link)
 		VALUES
-		($1, $2, $3, $4, $5, $6)
-		RETURNING id`, "deal")
+		($1, $2, $3, $4, $5, $6) RETURNING id`, "deals")
 
 		row := tx.QueryRow(ctx, createDealQuery, deal.Name, deal.Owner,
 			deal.Price, deal.CountReviews, deal.Score, deal.Link)
@@ -51,5 +88,42 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 		}
 	}
 
-	return ""
+	return "Added " + strconv.Itoa(ord)
+}
+
+func (d *DealPostgres) GetAllDeals() ([]model.Deal, error) {
+	var deals []model.Deal
+	query := "SELECT deals.name, deals.owner, deals.price, " +
+		"deals.count_reviews, deals.score, deals.link FROM deals"
+
+	rows, err := d.db.Query(context.Background(), query)
+	if err != nil {
+		fmt.Println("Ошибка выполнения запроса:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var deal model.Deal
+		err := rows.Scan(
+			&deal.ID,
+			&deal.Name,
+			&deal.Owner,
+			&deal.Price,
+			&deal.CountReviews,
+			&deal.Score,
+			&deal.Link,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		deals = append(deals, deal)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return deals, nil
 }

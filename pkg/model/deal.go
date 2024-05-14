@@ -8,6 +8,4 @@ type Deal struct {
 	CountReviews string `'json:"countReviews" db:"count_reviews"` // количество отзывов
 	Score        string `'json:"score" db:"score"`                // оценка
 	Link         string `'json:"link" db:"link"`                  // ссылка на продавца
-	//TimeReceivedDeal  string `'json:"timeReceivedDeal"`  // время выполнения
-	//TimeExecutionDeal string `'json:"timeExecutionDeal"` // время получения
 }
