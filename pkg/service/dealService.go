@@ -17,6 +17,5 @@ func NewDealListPostgres(repos repository.DealList) *DealListPostgres {
 }
 
 func (d *DealListPostgres) GetDealsByName() ([]model.Deal, error) {
-
 	return nil, nil
 }
