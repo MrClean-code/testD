@@ -7,6 +7,7 @@ import (
 
 type DealList interface {
 	GetDealsByName() ([]model.Deal, error)
+	InsertDeals([]model.Deal, error) string
 }
 
 type Service struct {

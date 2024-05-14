@@ -9,24 +9,29 @@ import (
 )
 
 type Handler struct {
-	services *service.Service
+	Services *service.Service
 }
+
+var h23 *Handler
 
 func NewHandler(services *service.Service) *Handler {
-	return &Handler{services: services}
+	return &Handler{Services: services}
 }
 
-func (h *Handler) InitRoutes() {
-	http.HandleFunc("/search_services", dealHandler)
-
+func (h *Handler) InitRoutes(h2 *Handler) {
+	h23 = h2
+	http.HandleFunc("/search_services", dealHandler)        // получить по названию услуги
+	http.HandleFunc("/search_services_int", dealIntHandler) // вставить данные
 }
 
 func dealHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("обработка ")
 	time.Sleep(2 * time.Second)
 	parsData := parser.NewParserList(r)
-	parsData.ParseData()
+	h23.Services.InsertDeals(parsData.ParseData())
 
-	//user_id, date, err := parseEventParamsGet(r)
+}
+
+func dealIntHandler(writer http.ResponseWriter, request *http.Request) {
 
 }

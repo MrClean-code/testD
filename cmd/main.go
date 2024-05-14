@@ -30,7 +30,7 @@ func main() {
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 
-	handlers.InitRoutes()
+	handlers.InitRoutes(handlers)
 
 	port := viper.GetString("PORT")
 
