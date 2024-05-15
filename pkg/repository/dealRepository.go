@@ -21,11 +21,11 @@ func NewDealPostgres(db *pgx.Conn) *DealPostgres {
 func (d *DealPostgres) GetDealsByName(name string) ([]model.Deal, error) {
 	var deals []model.Deal
 	query := `
-		SELECT deals.name, deals.owner, deals.price,
+		SELECT deals.id, deals.name, deals.owner, deals.price,
 			   deals.count_reviews, deals.score, deals.link
 		FROM deals
-		WHERE LENGTH(SUBSTRING(deals.name FROM $1)) >= 4
-	`
+		WHERE LENGTH(SUBSTRING(deals.name FROM $1)) >= 3  or  
+		      deals.name LIKE '%' || $1 || '%'`
 
 	rows, err := d.db.Query(context.Background(), query, name)
 	if err != nil {
@@ -99,7 +99,7 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 
 func (d *DealPostgres) GetAllDeals() ([]model.Deal, error) {
 	var deals []model.Deal
-	query := "SELECT deals.name, deals.owner, deals.price, " +
+	query := "SELECT deals.id, deals.name, deals.owner, deals.price, " +
 		"deals.count_reviews, deals.score, deals.link FROM deals"
 
 	rows, err := d.db.Query(context.Background(), query)

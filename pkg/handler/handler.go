@@ -31,9 +31,9 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) InitRoutes(h2 *Handler) {
 	h23 = h2
-	http.HandleFunc("/insert/services", insertDealHandler)       // вставить данные из парсера
-	http.HandleFunc("/get/all/services", getDealsHandler)        // получить данные из бд
-	http.HandleFunc("/get/services/name", getDealsByNameHandler) // получить данные по названию услуги
+	http.HandleFunc("/insert/services", insertDealHandler)  // вставить данные из парсера
+	http.HandleFunc("/get/all/services", getDealsHandler)   // получить данные из бд
+	http.HandleFunc("/get/services", getDealsByNameHandler) // получить данные по названию услуги
 }
 
 func getDealsByNameHandler(w http.ResponseWriter, r *http.Request) {

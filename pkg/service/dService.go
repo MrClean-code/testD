@@ -17,7 +17,7 @@ func NewDealListPostgres(repos repository.DealList) *DealListPostgres {
 }
 
 func (d *DealListPostgres) GetDealsByName(name string) ([]model.Deal, error) {
-	return d.GetDealsByName(name)
+	return d.repos.GetDealsByName(name)
 }
 
 func (d *DealListPostgres) InsertDeals(sl []model.Deal, err error) string {
@@ -25,5 +25,5 @@ func (d *DealListPostgres) InsertDeals(sl []model.Deal, err error) string {
 }
 
 func (d *DealListPostgres) GetAllDeals() ([]model.Deal, error) {
-	return d.GetAllDeals()
+	return d.repos.GetAllDeals()
 }
