@@ -16,9 +16,9 @@ type Handler struct {
 	Services *service.Service
 }
 type Response struct {
-	Result string     `json:"result"`
-	Deal   model.Deal `json:"deal"`
-	Error  string     `json:"error"`
+	Result string `json:"result"`
+	//Deal   model.Deal `json:"deal"`
+	//Error  string     `json:"error"`
 }
 
 type ResponseDeals struct {
@@ -58,7 +58,10 @@ func getDealsByNameHandler(w http.ResponseWriter, r *http.Request) {
 func insertDealHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("обработка ")
 	parsData := parser.NewParserList(r)
-	dealsMsg := h23.Services.InsertDeals(parsData.ParseData())
+	data, _ := parsData.ParseData()
+	fmt.Println("Data ", len(data))
+
+	dealsMsg := h23.Services.InsertDeals(data, nil)
 
 	response := &Response{
 		Result: dealsMsg,

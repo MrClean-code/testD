@@ -118,12 +118,16 @@ func (p *ParserDealList) ParseData() ([]model.Deal, error) {
 	sl = DeleteFirstElement(sl) // ов
 	sl = DeleteDataBetweenLink(sl)
 	sl = DeleteFisrtTail(sl)
+	fmt.Println("DeleteFisrtTail", len(sl))
 	sl = DeleteDoubleLink(sl)
+	fmt.Println("DeleteDoubleLink ", len(sl))
 	sl2 = SplitData(sl)
+	fmt.Println("SplitData ", len(sl2))
 	sl2 = EditDataFormat(sl2)
 
-	sl2 = sl2[:len(sl2)-1] // убираем последний символ
-
+	if len(sl2) > 5 {
+		sl2 = sl2[:len(sl2)-1] // убираем последний символ
+	}
 	//for i := 0; i < len(sl2); i++ {
 	//	fmt.Println(sl2[i])
 	//}
@@ -232,23 +236,47 @@ func DeleteDataBetweenLink(sl []string) []string {
 
 func SplitData(sl []string) []model.Deal {
 	c := 0
-	sl2 = make([]model.Deal, 0)
+	//sl2 = make([]model.Deal, 0)
 	i2 := 0
 	for i, item := range sl {
-
 		if strings.HasPrefix(item, "http") && c == 3 && c < len(sl)-1 {
 			i2++
+			var deal *model.Deal
 			comments := strings.Split(sl[i-1], "\n")
-			deal := &model.Deal{
-				i2,
-				sl[i-3],
-				comments[0],
-				sl[i-2],
-				comments[2],
-				comments[1],
-				sl[i],
+			if len(comments) == 3 {
+				deal = &model.Deal{
+					i2,
+					sl[i-3],
+					comments[0],
+					sl[i-2],
+					comments[2],
+					comments[1],
+					sl[i],
+				}
+				sl2 = append(sl2, *deal)
+			} else if len(comments) == 2 {
+				deal = &model.Deal{
+					i2,
+					sl[i-3],
+					comments[0],
+					sl[i-2],
+					"",
+					comments[1],
+					sl[i],
+				}
+				sl2 = append(sl2, *deal)
+			} else if len(comments) == 1 {
+				deal = &model.Deal{
+					i2,
+					sl[i-3],
+					comments[0],
+					sl[i-2],
+					"",
+					"",
+					sl[i],
+				}
+				sl2 = append(sl2, *deal)
 			}
-			sl2 = append(sl2, *deal)
 			c = 0
 		} else if strings.HasPrefix(item, "http") && c != 3 {
 			c = 0

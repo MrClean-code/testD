@@ -67,6 +67,11 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 	}
 	defer tx.Rollback(ctx)
 
+	fmt.Println("InsertDeals ", len(sl))
+	for _, deal := range sl {
+		fmt.Println(deal)
+	}
+
 	var ord int
 	for _, deal := range sl {
 
@@ -83,9 +88,10 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 			return ""
 		}
 
-		if err := tx.Commit(ctx); err != nil {
-			return ""
-		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return ""
 	}
 
 	return "Added " + strconv.Itoa(ord)
