@@ -1,0 +1,13 @@
+-- CREATE TABLE IF NOT EXISTS deals (
+--                                      id SERIAL PRIMARY KEY,
+--                                      name TEXT,
+--                                      owner TEXT,
+--                                      price TEXT,
+--                                      count_reviews TEXT,
+--                                      score TEXT,
+--                                      link TEXT
+-- );
+-- INSERT INTO deals (name, owner, price, count_reviews, score, link)
+-- VALUES ('Название услуги', 'Владелец услуги', 'Цена услуги', 'Количество отзывов', 'Оценка', 'Ссылка на продавца');
+
+-- TRUNCATE TABLE deals RESTART IDENTITY;
