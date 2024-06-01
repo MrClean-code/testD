@@ -27,6 +27,9 @@ var sl2 []model.Deal
 func (p *ParserDealList) ParseData() ([]model.Deal, error) {
 
 	p.Deals = make([]model.Deal, 0)
+	if len(p.Deals) > 0 {
+		p.Deals = p.Deals[:0]
+	}
 
 	var pN = p.r.URL.Query().Get("name")
 	if pN == "" {
@@ -80,7 +83,7 @@ func (p *ParserDealList) ParseData() ([]model.Deal, error) {
 	fmt.Println("Страница успешно открыта")
 
 	rand.Seed(time.Now().UnixNano())
-	randomSeconds := rand.Intn(10) + 5
+	randomSeconds := rand.Intn(3) + 15
 	time.Sleep(time.Duration(randomSeconds) * time.Second)
 
 	fmt.Println("Получение текста элементов...")
@@ -128,9 +131,6 @@ func (p *ParserDealList) ParseData() ([]model.Deal, error) {
 	if len(sl2) > 5 {
 		sl2 = sl2[:len(sl2)-1] // убираем последний символ
 	}
-	//for i := 0; i < len(sl2); i++ {
-	//	fmt.Println(sl2[i])
-	//}
 
 	return sl2, nil
 }

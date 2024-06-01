@@ -67,13 +67,16 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 	}
 	defer tx.Rollback(ctx)
 
-	fmt.Println("InsertDeals ", len(sl))
-	for _, deal := range sl {
-		fmt.Println(deal)
-	}
+	//fmt.Println("InsertDeals ", len(sl))
+	//for _, deal := range sl {
+	//	fmt.Println(deal)
+	//}
 
 	var ord int
 	for _, deal := range sl {
+		dPrice, _ := strconv.Atoi(deal.Price)
+		dCountReviews, _ := strconv.Atoi(deal.CountReviews)
+		dScore, _ := strconv.ParseFloat(deal.Score, 64)
 
 		createDealQuery := fmt.Sprintf(`
 		INSERT INTO %s (name, owner, price,
@@ -82,7 +85,7 @@ func (d *DealPostgres) InsertDeals(sl []model.Deal, err error) string {
 		($1, $2, $3, $4, $5, $6) RETURNING id`, "deals")
 
 		row := tx.QueryRow(ctx, createDealQuery, deal.Name, deal.Owner,
-			deal.Price, deal.CountReviews, deal.Score, deal.Link)
+			dPrice, dCountReviews, dScore, deal.Link)
 
 		if err := row.Scan(&ord); err != nil {
 			return ""

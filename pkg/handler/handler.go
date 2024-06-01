@@ -10,15 +10,13 @@ import (
 	"net/http"
 )
 
-var h23 *Handler
-
 type Handler struct {
 	Services *service.Service
+	Mux      *http.ServeMux
 }
+
 type Response struct {
 	Result string `json:"result"`
-	//Deal   model.Deal `json:"deal"`
-	//Error  string     `json:"error"`
 }
 
 type ResponseDeals struct {
@@ -26,17 +24,25 @@ type ResponseDeals struct {
 }
 
 func NewHandler(services *service.Service) *Handler {
-	return &Handler{Services: services}
+	h := &Handler{
+		Services: services,
+		Mux:      http.NewServeMux(),
+	}
+	h.initRoutes()
+	return h
 }
 
-func (h *Handler) InitRoutes(h2 *Handler) {
-	h23 = h2
-	http.HandleFunc("/insert/services", insertDealHandler)  // вставить данные из парсера
-	http.HandleFunc("/get/all/services", getDealsHandler)   // получить данные из бд
-	http.HandleFunc("/get/services", getDealsByNameHandler) // получить данные по названию услуги
+func (h *Handler) initRoutes() {
+	h.Mux.HandleFunc("/insert/services", h.insertDealHandler)
+	h.Mux.HandleFunc("/get/all/services", h.getDealsHandler)
+	h.Mux.HandleFunc("/get/services", h.getDealsByNameHandler)
 }
 
-func getDealsByNameHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	corsMiddleware(h.Mux).ServeHTTP(w, r)
+}
+
+func (h *Handler) getDealsByNameHandler(w http.ResponseWriter, r *http.Request) {
 	var name = r.URL.Query().Get("name")
 	if name == "" {
 		log.Fatal("error nil name")
@@ -44,47 +50,95 @@ func getDealsByNameHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(name)
 	}
 
-	deals, _ := h23.Services.GetDealsByName(name)
+	deals, err := h.Services.GetDealsByName(name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	response := &ResponseDeals{
 		Deals: deals,
 	}
 
-	jsonResponse, _ := toJSON(response)
+	jsonResponse, err := toJSON(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }
 
-func insertDealHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) insertDealHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("обработка ")
 	parsData := parser.NewParserList(r)
-	data, _ := parsData.ParseData()
+	//data := make([]model.Deal, 0)
+	data, err := parsData.ParseData()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	fmt.Println("Data ", len(data))
 
-	dealsMsg := h23.Services.InsertDeals(data, nil)
-
-	response := &Response{
-		Result: dealsMsg,
+	_ = h.Services.InsertDeals(data, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	jsonResponse, _ := toJSON(response)
+	for _, item := range data {
+		fmt.Println(item)
+	}
+
+	//response := &ResponseDeals{
+	//	Deals: data,
+	//}
+
+	jsonResponse, err := toJSON(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }
 
-func getDealsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getDealsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("обработка ")
-	deals, _ := h23.Services.GetAllDeals()
+	deals, err := h.Services.GetAllDeals()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	response := &ResponseDeals{
 		Deals: deals,
 	}
 
-	jsonResponse, _ := toJSON(response)
+	jsonResponse, err := toJSON(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }
 
 func toJSON(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if r.Method == http.MethodOptions {
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
